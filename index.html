@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script>
+            var society = [];
+            var globalMembers;
+            $.ajax({
+                url: '//aquentuxsociety.apiary-mock.com/members',
+                dataType: 'json',
+                success: function( data ) {
+                    globalMembers = data;
+                    $.each(data, function(index, element) {
+                        $('tbody').append('<tr id="' + element.id + '"><td>' + element.firstName + ' ' + element.surname +'</td><td>' + element.occupation + '</td><td>' + element.company + '</td></tr>');
+                        society[element.id] = element;
+                    });
+                },
+                error: function( data ) {
+                    $('tbody').html('<p>An error has occurred.  Try again later. </p>')
+                }
+            });
+            
+            function memberLookup($memberId){
+                //alert(society[$memberId].firstName);
+                var rightSideHTML = '<h3>' + society[$memberId].firstName + ' ' + society[$memberId].surname + '</h3><img src="' + society[$memberId].portrait + '" /><p>' + society[$memberId].occupation + '</p><p>' + society[$memberId].company + '</p><p>' + society[$memberId].motto + '</p>';
+                $('#contentRight').show();
+                $('#contentRight').html(rightSideHTML);
+                
+            }
+            
+            function memberSearch(memberSearchData){
+                if(memberSearchData === ''){
+                    $.each(globalMembers, function(index, element) {
+                        $('tbody').append('<tr id="' + element.id + '"><td>' + element.firstName + ' ' + element.surname +'</td><td>' + element.occupation + '</td><td>' + element.company + '</td></tr>');
+                });
+                }
+                var needleFound = 0;
+                var needle = new RegExp(memberSearchData,"i");
+                var haystack;
+                $('#memberTable tbody').html('');
+                $.each(globalMembers, function(index, element) {
+                    haystack = element.firstName + ' ' + element.surname;
+                    //if(element.firstName.search(needle) != -1 || element.surname.search(needle) != -1) {
+                    if(haystack.search(needle) != -1){
+                        needleFound = 1;
+                        $('tbody').append('<tr id="' + element.id + '"><td>' + element.firstName + ' ' + element.surname +'</td><td>' + element.occupation + '</td><td>' + element.company + '</td></tr>');
+                    }
+                });
+                if(needleFound === 0){
+                    $('tbody').html('<p>No members found</p>')
+                }
+            }
+            
+        </script>
+        <style>
+            .table{
+                border: 1px solid #000;
+            }
+            td{
+                border: 1px solid #000;
+            }
+            tr:first-child{
+                background-color: #c9c3c3;
+            }
+            .trSelected{
+                background-color: #00a9ff;
+            }
+            .table-striped>tbody>tr:nth-child(odd).trSelected>td{
+                background-color:#00a9ff;
+            }
+            .memberArea{
+                padding-top: 20px;
+            }
+            .memberArea tr{
+                cursor: default;
+            }
+            #contentRight{
+                border: 1px solid #000;
+                margin-left:15px;
+                display:none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>UX Society Members</h1>
+        </div>
+        <div class="container">
+            <form role="form">
+                <div class="input-group">
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+                    <input type="text" id ="searchBox" class="form-control" placeholder="Search">
+                </div>
+            </form>
+        </div>
+        <div class="container memberArea">
+            <div class="row">
+                <div id="contentLeft" class="col-xs-12 col-md-8 col-lg-8">
+                    <table id="memberTable" class="table table-striped">
+                        <thead>
+                            <tr><td>Name</td><td>Occupation</td><td>Company</td></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="contentRight" class="col-xs-3 col-md-3 col-lg-3"></div>
+            </div>
+        </div>
+        <script>
+            $(function() {
+                $('#memberTable tbody').on('click', 'td', function (e) {
+                    var memberId = $(this).parent().attr('id');
+                    $('tr').removeClass('trSelected');
+                    $(this).parent().addClass('trSelected');
+                    memberLookup(memberId);
+                });
+                $('#searchBox').keydown(function(event){
+                    if(event.keyCode == 13) {
+                        event.preventDefault();
+                        return false;
+                    }
+                });
+                $('#searchBox').keyup(function(event){
+                    if(event.keyCode == 13) {
+                        event.preventDefault();
+                        memberSearch($( this ).val());
+                        return false;
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
